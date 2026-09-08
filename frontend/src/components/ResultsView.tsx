@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { RecommendationResponse, RecommendationFormData, OutfitDetail, FavoriteOutfit } from '../types';
 import { OutfitCard } from './OutfitCard';
-import { RefreshCw, Sparkles, Check, Share2, ArrowLeft, Printer } from 'lucide-react';
+import { RefreshCw, Sparkles, Check, Share2, ArrowLeft, Printer, Sun, Palette } from 'lucide-react';
+import { CLIMATE_PROFILES } from '../climateProfiles';
 
 interface ResultsViewProps {
   data: RecommendationResponse;
@@ -19,6 +20,12 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onToggleFavorite
 }) => {
   const [copied, setCopied] = useState(false);
+  const climateProfile = CLIMATE_PROFILES[formData.season];
+  const userPreferenceTags = (formData.preferences || '')
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(Boolean)
+    .slice(0, 6);
 
   const handleCopySummary = () => {
     const summaryText = `ŌTFIT Outfit Recommendation for ${formData.occasion} (${formData.culture}):\n\n` +
@@ -97,6 +104,53 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           Tailored for {formData.season} climate and your selected style preferences.
         </p>
       </div>
+
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 print:gap-2 print:grid-cols-1">
+        <div className="glass-card rounded-xl border border-gray-800 p-4">
+          <div className="flex items-center space-x-2 text-cyan-300 mb-2">
+            <Sun className="w-4 h-4" />
+            <h3 className="text-sm font-semibold">Climate Styling Focus</h3>
+          </div>
+          <p className="text-sm text-gray-300 mb-3">{climateProfile.stylingFocus}</p>
+          <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-1.5">Best fabrics for {formData.season}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {climateProfile.preferredFabrics.map(fabric => (
+              <span key={fabric} className="px-2.5 py-1 rounded-md bg-gray-900 border border-gray-800 text-xs text-gray-300">
+                {fabric}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-card rounded-xl border border-gray-800 p-4">
+          <div className="flex items-center space-x-2 text-amber-300 mb-2">
+            <Palette className="w-4 h-4" />
+            <h3 className="text-sm font-semibold">Color Recommendations</h3>
+          </div>
+          <p className="text-sm text-gray-300 mb-3">
+            {climateProfile.outfitDirection} for {formData.season.toLowerCase()} weather.
+          </p>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {climateProfile.recommendedColors.map(color => (
+              <span key={color} className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+                {color}
+              </span>
+            ))}
+          </div>
+          {userPreferenceTags.length > 0 && (
+            <>
+              <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-1.5">Your selected style cues</p>
+              <div className="flex flex-wrap gap-1.5">
+                {userPreferenceTags.map(tag => (
+                  <span key={tag} className="px-2.5 py-1 rounded-md bg-gray-900 border border-gray-800 text-xs text-gray-300">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Primary Outfit Section */}
       <section className="print:break-inside-avoid">

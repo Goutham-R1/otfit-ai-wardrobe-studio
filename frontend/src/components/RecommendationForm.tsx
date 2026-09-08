@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { RecommendationFormData, GenderOption, SeasonOption } from '../types';
 import { Sparkles, Calendar, Sun, Palette, FileText, User, Info, Shirt } from 'lucide-react';
+import { CLIMATE_PROFILES } from '../climateProfiles';
 
 interface FormProps {
   onSubmit: (data: RecommendationFormData) => void;
@@ -205,6 +206,26 @@ export const RecommendationForm: React.FC<FormProps> = ({ onSubmit, isLoading })
     });
   };
 
+  const handleApplyClimateHints = (season: SeasonOption) => {
+    const profile = CLIMATE_PROFILES[season];
+    const climateHints = [
+      profile.outfitDirection,
+      `${season} climate`,
+      ...profile.recommendedColors.slice(0, 2)
+    ];
+
+    setFormData(prev => {
+      const existing = prev.preferences || '';
+      const lower = existing.toLowerCase();
+      const additions = climateHints.filter(hint => !lower.includes(hint.toLowerCase()));
+      if (additions.length === 0) {
+        return { ...prev, season };
+      }
+      const merged = existing ? `${existing}, ${additions.join(', ')}` : additions.join(', ');
+      return { ...prev, season, preferences: merged };
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
       <div className="text-center mb-10">
@@ -326,22 +347,56 @@ export const RecommendationForm: React.FC<FormProps> = ({ onSubmit, isLoading })
             <Sun className="w-4 h-4 text-amber-400" />
             <span>Season / Climate</span>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SEASONS.map(s => (
-              <button
+              <div
                 key={s}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, season: s }))}
-                className={`py-3 px-3 rounded-xl text-xs sm:text-sm font-medium border transition text-center cursor-pointer ${
+                className={`rounded-xl border p-3.5 transition ${
                   formData.season === s
-                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-semibold shadow-md'
-                    : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:border-gray-700 hover:text-gray-200'
+                    ? 'bg-cyan-500/10 border-cyan-400/60 shadow-md'
+                    : 'bg-gray-900/60 border-gray-800'
                 }`}
               >
-                {s}
-              </button>
+                <div className="flex items-start justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, season: s }))}
+                    className={`text-left cursor-pointer ${
+                      formData.season === s ? 'text-cyan-300' : 'text-gray-200'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold">{s}</span>
+                    <span className="block text-xs text-gray-400 mt-1">
+                      {CLIMATE_PROFILES[s].summary}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClimateHints(s)}
+                    className="text-[10px] sm:text-xs px-2.5 py-1 rounded-md border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/15 transition cursor-pointer"
+                  >
+                    Apply
+                  </button>
+                </div>
+                <div className="mt-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Recommended colors</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {CLIMATE_PROFILES[s].recommendedColors.slice(0, 4).map(color => (
+                      <span
+                        key={color}
+                        className="px-2 py-0.5 rounded-md bg-gray-950/80 border border-gray-800 text-[10px] text-gray-300"
+                      >
+                        {color}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Pick a climate profile to shape lighter/heavier clothing, color palette, and styling direction.
+          </p>
         </div>
 
         {/* 5. Preferred Colors & Style */}
