@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { RecommendationFormData, GenderOption, SeasonOption } from '../types';
 import { Sparkles, Calendar, Sun, Palette, FileText, User, Info, Shirt } from 'lucide-react';
 import { CLIMATE_PROFILES } from '../climateProfiles';
@@ -141,7 +141,10 @@ export const RecommendationForm: React.FC<FormProps> = ({ onSubmit, isLoading })
     );
   };
 
-  const availableGarments = getAvailableGarmentChips(formData.occasion, formData.gender);
+  const availableGarments = useMemo(
+    () => getAvailableGarmentChips(formData.occasion, formData.gender),
+    [formData.occasion, formData.gender]
+  );
 
   // Dynamic placeholder text matching target gender
   const getGarmentPlaceholder = (gender: GenderOption) => {
@@ -158,7 +161,7 @@ export const RecommendationForm: React.FC<FormProps> = ({ onSubmit, isLoading })
         setFormData(prev => ({ ...prev, desired_garment: '' }));
       }
     }
-  }, [formData.occasion, formData.gender]);
+  }, [availableGarments, formData.desired_garment]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
